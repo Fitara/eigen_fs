@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 
@@ -6,7 +6,7 @@ const fs = require("fs");
 const booksData = JSON.parse(fs.readFileSync("./data/books.json", "utf-8"));
 
 module.exports = {
-  up (queryInterface, Sequelize) {
+  up(queryInterface, Sequelize) {
     /**
      * Add seed commands here.
      *
@@ -15,7 +15,7 @@ module.exports = {
      *   name: 'John Doe',
      *   isBetaMember: false
      * }], {});
-    */
+     */
     const data = booksData.map((book) => ({
       ...book,
       createdAt: new Date(),
@@ -25,7 +25,7 @@ module.exports = {
     return queryInterface.bulkInsert("Books", data, {});
   },
 
-  down (queryInterface, Sequelize) {
+  down(queryInterface, Sequelize) {
     /**
      * Add commands to revert seed here.
      *
@@ -33,5 +33,5 @@ module.exports = {
      * await queryInterface.bulkDelete('People', null, {});
      */
     return queryInterface.bulkDelete("Books", null, {});
-  }
+  },
 };

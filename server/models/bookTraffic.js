@@ -1,7 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class BorrowedBook extends Model {
+  class BookTraffic extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,11 +9,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      BorrowedBook.belongsTo(models.Member, { foreignKey: "memberId" });
-      BorrowedBook.belongsTo(models.Book, { foreignKey: "bookId" });
+      BookTraffic.belongsTo(models.Member, { foreignKey: "memberId" });
+      BookTraffic.belongsTo(models.Book, { foreignKey: "bookId" });
     }
   }
-  BorrowedBook.init(
+  BookTraffic.init(
     {
       memberId: {
         type: DataTypes.INTEGER,
@@ -31,18 +31,21 @@ module.exports = (sequelize, DataTypes) => {
           notNull: { msg: "Book ID is required" },
         },
       },
-      returnDate: {
-        type: DataTypes.DATE,
+      status: {
+        type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          isDate: { msg: "Return date must be valid" },
+          isIn: {
+            args: [["borrowed", "returned"]],
+            msg: "Status must be 'borrowed' or 'returned'",
+          },
         },
       },
     },
     {
       sequelize,
-      modelName: "BorrowedBook",
+      modelName: "BookTraffic",
     }
   );
-  return BorrowedBook;
+  return BookTraffic;
 };

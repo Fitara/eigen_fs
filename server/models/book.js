@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Book.hasMany(models.BorrowedBook, { foreignKey: "bookId" });
+      Book.hasMany(models.BookTraffic, { foreignKey: "bookId" });
     }
   }
   Book.init(
@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           isInt: { msg: "Stock must be a number" },
-          min: { args: [0], msg: "Stock minimum is 0" }
+          min: { args: [0], msg: "Stock minimum is 0" },
         },
       },
     },
