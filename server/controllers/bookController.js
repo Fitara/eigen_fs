@@ -19,11 +19,23 @@ class Controller {
 
   static async borrowBook(req, res, next) {
     try {
-      const { memberId, bookId } = req.params;
+      const { bookId, memberId } = req.params;
 
-      const member = await Member.findByPk(memberId);
+      const book = await Book.findByPk(bookId);
+
+      if (!book || book.stock <= 0) throw { name: "BookUnavailable" };
+
+      const member = await Member.findByPk(memberId, {
+        include: {
+          model: BookTraffic,
+        },
+      });
 
       if (!member) throw { name: "MemberNotFound" };
+
+      const booked = member.BookTraffics.length;
+
+      if (booked === 0) throw { name: "BookedIsEmpty" };
 
       const currentDate = new Date();
       if (member.isPenalized) {
@@ -46,10 +58,6 @@ class Controller {
           }
         }
       }
-
-      const book = await Book.findByPk(bookId);
-
-      if (!book || book.stock <= 0) throw { name: "BookUnavailable" };
 
       const bookedCount = await BookTraffic.count({
         where: {
@@ -80,8 +88,6 @@ class Controller {
       const { memberId, bookId } = req.params;
 
       const member = await Member.findByPk(memberId);
-
-      if (member.isPenalized) throw { name: "MemberPenalized" };
 
       const book = await Book.findByPk(bookId);
 
