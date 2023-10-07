@@ -1,4 +1,4 @@
-const { Book, Member, BookTraffic } = require("../models/index");
+const { Book, Member, BookHistory } = require("../models/index");
 
 class Controller {
   static async getAllBook(req, res, next) {
@@ -8,7 +8,7 @@ class Controller {
       const availableBooks = books.filter((book) => book.stock > 0);
 
       if (availableBooks.length === 0) {
-        throw { name: "StockEmpty" };
+        throw { name: "BookUnavailable" };
       }
 
       res.status(200).json(availableBooks);
@@ -23,23 +23,19 @@ class Controller {
 
       const book = await Book.findByPk(bookId);
 
-      if (!book || book.stock <= 0) throw { name: "BookUnavailable" };
+      if (book.stock <= 0) throw { name: "BookUnavailable" };
 
       const member = await Member.findByPk(memberId, {
         include: {
-          model: BookTraffic,
+          model: BookHistory,
         },
       });
 
       if (!member) throw { name: "MemberNotFound" };
 
-      const booked = member.BookTraffics.length;
-
-      if (booked === 0) throw { name: "BookedIsEmpty" };
-
       const currentDate = new Date();
       if (member.isPenalized) {
-        const lastBookReturn = await BookTraffic.findOne({
+        const lastBookReturn = await BookHistory.findOne({
           where: {
             memberId: memberId,
             status: "returned",
@@ -59,7 +55,7 @@ class Controller {
         }
       }
 
-      const bookedCount = await BookTraffic.count({
+      const bookedCount = await BookHistory.count({
         where: {
           memberId: memberId,
           status: "borrowed",
@@ -68,7 +64,7 @@ class Controller {
 
       if (bookedCount >= 2) throw { name: "BookedLimited" };
 
-      await BookTraffic.create({
+      await BookHistory.create({
         memberId,
         bookId,
         status: "borrowed",
@@ -85,15 +81,18 @@ class Controller {
 
   static async returnBook(req, res, next) {
     try {
-      const { memberId, bookId } = req.params;
+      const { id, bookId } = req.params;
 
-      const member = await Member.findByPk(memberId);
+      console.log(req.params, "<<<<<<<<");
+      const member = await Member.findByPk(id);
+
+      if (!member) throw { name: "MemberNotFound" }
 
       const book = await Book.findByPk(bookId);
 
       if (!book) throw { name: "BookNotFound" };
 
-      const bookTraffic = await BookTraffic.findOne({
+      const bookHistory = await BookHistory.findOne({
         where: {
           memberId: memberId,
           bookId: bookId,
@@ -101,11 +100,11 @@ class Controller {
         },
       });
 
-      if (!bookTraffic) throw { name: "BookNotBorrowed" };
+      if (!bookHistory) throw { name: "BookNotBorrowed" };
 
       const returnDate = new Date();
       const msPerDay = 24 * 60 * 60 * 1000;
-      const borrowedDate = new Date(bookTraffic.createdAt);
+      const borrowedDate = new Date(bookHistory.createdAt);
       const daysDiff = Math.floor((returnDate - borrowedDate) / msPerDay);
 
       if (daysDiff > 7) {
@@ -113,15 +112,16 @@ class Controller {
         await member.save();
       }
 
-      bookTraffic.status = "returned";
-      bookTraffic.updatedAt = returnDate;
-      await bookTraffic.save();
+      bookHistory.status = "returned";
+      bookHistory.updatedAt = returnDate;
+      await bookHistory.save();
 
       book.stock += 1;
       await book.save();
 
       res.status(200).json({ message: "Book successfully returned" });
     } catch (err) {
+      console.log(err);
       next(err);
     }
   }

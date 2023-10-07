@@ -1,39 +1,21 @@
 const errors = async function (err, req, res, next) {
-  const errorMessages = {};
-
   if (
     err.name === "SequelizeValidationError" ||
     err.name === "SequelizeUniqueConstraintError"
   ) {
-    errorMessages.validationError = err.errors[0].message;
-    res.status(400);
-  }
-
-  if (err.name === "StockEmpty") {
-    errorMessages.stockEmpty = "No available books";
-    res.status(404);
-  }
-
-  if (err.name === "MemberNotFound") {
-    errorMessages.memberNotFound = "Member not found";
-    res.status(404);
-  }
-
-  if (err.name === "BookedIsEmpty") {
-    errorMessages.bookedIsEmpty = "Member has not borrowed any books";
-    res.status(404);
-  }
-
-  if (err.name === "MemberPenalized") {
-    errorMessages.memberPenalized = "Member cannot borrow within 3 days";
-  }
-
-  if (err.name === "BookedLimited") {
-    errorMessages.bookedLimited = "Member has already borrowed 2 books";
-  }
-
-  if (Object.keys(errorMessages).length > 0) {
-    res.json(errorMessages);
+    res.status(400).json({ validationError: err.errors[0].message });
+  } else if (err.name === "MemberPenalized") {
+    res.status(403).json({ message: "Member cannot borrow within 3 days" });
+  } else if (err.name === "NoHistories") {
+    res.status(403).json({ message: "There is no book history yet" });
+  } else if (err.name === "BookUnavailable") {
+    res.status(404).json({ message: "Book Unavailable" });
+  } else if (err.name === "MemberNotFound") {
+    res.status(404).json({ message: "Member not found" });
+  } else if (err.name === "BookedIsEmpty") {
+    res.status(404).json({ message: "Member has not borrowed any books" });
+  } else if (err.name === "BookedLimited") {
+    res.status(409).json({ message: "Member has already borrowed 2 books" });
   } else {
     res.status(500).json({ message: "Internal server error" });
   }
