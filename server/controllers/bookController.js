@@ -81,10 +81,9 @@ class Controller {
 
   static async returnBook(req, res, next) {
     try {
-      const { id, bookId } = req.params;
+      const { memberId, bookId } = req.params;
 
-      console.log(req.params, "<<<<<<<<");
-      const member = await Member.findByPk(id);
+      const member = await Member.findByPk(memberId);
 
       if (!member) throw { name: "MemberNotFound" }
 

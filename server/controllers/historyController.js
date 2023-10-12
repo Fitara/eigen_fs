@@ -12,7 +12,6 @@ class Controller {
 
       res.status(200).json(histories);
     } catch (err) {
-      console.log(err, "<<<<<");
       next(err);
     }
   }

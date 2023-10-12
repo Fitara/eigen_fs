@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Space, Button, Modal, Form } from 'antd';
+import { Table, Space, Button, Modal, Input, Select, Form } from 'antd';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { fetchMembers, selectMembers } from '../redux/memberSlice';
-import { fetchHistory, selectHistory } from '../redux/historySlice';
+import { selectHistory } from '../redux/historySlice';
 import { returnBook } from '../redux/booksSlice';
 
 interface Member {
   id: number;
   code: string;
   name: string;
-  booked: number;
   isPenalize: boolean;
 }
 
 const Members: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { data: memberData, loading: memberLoading } = useAppSelector(selectMembers);
+  const { data: memberData } = useAppSelector(selectMembers);
   const { data: historyData } = useAppSelector(selectHistory);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -23,12 +22,13 @@ const Members: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchMembers());
-    dispatch(fetchHistory());
   }, [dispatch]);
 
   const handleReturnClick = async (member: Member) => {
     setIsModalVisible(true);
     form.setFieldsValue({ memberId: member.id });
+    console.log(member, "<><><>");
+    
     setSelectedMember(member);
   };
 
@@ -41,6 +41,8 @@ const Members: React.FC = () => {
     try {
       const values = await form.validateFields();
       dispatch(returnBook(values.bookId, values.memberId))
+      form.resetFields(['bookId']);
+      
       handleCancel();
     } catch (error) {
       console.log('Validation failed:', error);
@@ -68,8 +70,7 @@ const Members: React.FC = () => {
         <Space size="middle">
           <Button
             type="default"
-            onClick={() => handleReturnClick(record)}
-            disabled={record.booked === 0} 
+            onClick={() => handleReturnClick(record)} 
           >
             Return
           </Button>
@@ -80,25 +81,52 @@ const Members: React.FC = () => {
 
   return (
     <div>
-      <Table dataSource={memberData} columns={columns} loading={memberLoading} rowKey="id" />
-
+      <Table
+        dataSource={memberData}
+        columns={columns}
+        rowKey={(record) => record.id.toString()}
+      />
       <Modal
-        title={`Return Book - ${selectedMember ? selectedMember.name : ''}`}
+        title={`Member - ${selectedMember ? selectedMember.name : ''}`}
         open={isModalVisible}
-        onOk={handleReturn}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="default" className='button' onClick={handleReturn}>
+            Return
+          </Button>,
+        ]}
       >
-        <p>Are you sure you want to return this book?</p>
-        {/* Tampilkan daftar buku yang dipinjam oleh member di sini */}
-        {selectedMember && (
-          <ul>
-            {historyData
-              .filter((history) => history.memberId === selectedMember.id)
+        <Form form={form} name="returnForm">
+          <Form.Item
+            name="memberId"
+            hidden
+          >
+          <Input />
+          </Form.Item>
+          <Form.Item
+            name="bookId"
+            label="Book"
+            rules={[
+              {
+                required: true,
+                message: 'Please select a book!',
+              },
+            ]}
+          >
+            <Select>
+              {historyData
+              .filter((history) => history.memberId === selectedMember?.id)
               .map((history) => (
-                <li key={history.id}>{history.Book.title}</li>
+                <Select.Option key={history.Book.id} value={history.Book.id}>
+                  {history.Book.title}
+                </Select.Option>
               ))}
-          </ul>
-        )}
+            </Select>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

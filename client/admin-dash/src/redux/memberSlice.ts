@@ -65,8 +65,9 @@ export const fetchMemberById = (memberId: number) => async (dispatch: AppDispatc
   dispatch(fetchMembersStart());
   try {
     const response = await axios.get(`${base_url}/members/${memberId}`);
-    dispatch(fetchMembersSuccess(response.data)); // Ubah response.data.member menjadi array agar sesuai dengan data di state
-    // console.log(response.data.member, "<<<<<<<<<<<<");
+    dispatch(fetchMembersSuccess(response.data)); 
+    console.log(response.data, "<<<<");
+    
     return response.data;
     
   } catch (error) {
