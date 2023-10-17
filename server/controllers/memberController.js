@@ -3,7 +3,9 @@ const { Member, BookHistory } = require("../models/index");
 class Controller {
   static async getAllMember(req, res, next) {
     try {
-      const members = await Member.findAll();
+      const members = await Member.findAll({
+        include: { model: BookHistory },
+      });
 
       res.status(200).json(members);
     } catch (err) {
@@ -19,9 +21,8 @@ class Controller {
         },
       });
 
-      
       if (!member) throw { name: "MemberNotFound" };
-      
+
       const booked = member.BookHistories.length;
 
       if (booked === 0) throw { name: "BookedIsEmpty" };

@@ -3,6 +3,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios, { AxiosError } from 'axios';
 import { AppDispatch, RootState } from './store';
+import { fetchHistory } from './historySlice';
 
 const base_url = 'http://localhost:3000';
 
@@ -136,8 +137,12 @@ export const returnBook = (bookId: number, memberId: number) => async (
     const response = await axios.post(
       `${base_url}/books/${bookId}/return/${memberId}`
     );
-    dispatch(returnBookSuccess(response.data.message));
-    dispatch(fetchBooks());
+    
+    if (response.request.status === 200) {
+      dispatch(returnBookSuccess(response.data.message));
+      dispatch(fetchHistory());
+    }
+    
   } catch (error) {
     const err = error as AxiosError<unknown>;
     const errorData = (err.response?.data as { message: string });

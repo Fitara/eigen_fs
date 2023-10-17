@@ -74,7 +74,12 @@ const Books: React.FC = () => {
       width: '20%',
       render: (record: Book) => (
         <Space size="middle">
-          <Button type="default" onClick={() => handleBorrowClick(record)}>
+          <Button
+            type="default"
+            onClick={() => handleBorrowClick(record)}
+            // placeholder="Member"
+            disabled={record.stock === 0} 
+          >
             Borrow
           </Button>
         </Space>
@@ -144,7 +149,7 @@ const Books: React.FC = () => {
               },
             ]}
           >
-            <Select>
+            <Select placeholder="Choose a member">
               {membersData.map((member) => (
                 <Select.Option key={member.id} value={member.id}>
                   {member.name}

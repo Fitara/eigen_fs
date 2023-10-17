@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, Space, Button, Modal, Input, Select, Form } from 'antd';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { fetchMembers, selectMembers } from '../redux/memberSlice';
-import { selectHistory } from '../redux/historySlice';
+import { fetchHistory, selectHistory } from '../redux/historySlice';
 import { returnBook } from '../redux/booksSlice';
 
 interface Member {
@@ -10,6 +10,7 @@ interface Member {
   code: string;
   name: string;
   isPenalize: boolean;
+  BookHistories: [];
 }
 
 const Members: React.FC = () => {
@@ -22,12 +23,12 @@ const Members: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchMembers());
+    dispatch(fetchHistory());
   }, [dispatch]);
 
   const handleReturnClick = async (member: Member) => {
     setIsModalVisible(true);
     form.setFieldsValue({ memberId: member.id });
-    console.log(member, "<><><>");
     
     setSelectedMember(member);
   };
@@ -40,9 +41,9 @@ const Members: React.FC = () => {
   const handleReturn = async () => {
     try {
       const values = await form.validateFields();
-      dispatch(returnBook(values.bookId, values.memberId))
-      form.resetFields(['bookId']);
+      await dispatch(returnBook(values.bookId, values.memberId))
       
+      fetchMembers();
       handleCancel();
     } catch (error) {
       console.log('Validation failed:', error);
@@ -70,7 +71,8 @@ const Members: React.FC = () => {
         <Space size="middle">
           <Button
             type="default"
-            onClick={() => handleReturnClick(record)} 
+            onClick={() => handleReturnClick(record)}
+            disabled={record.BookHistories.length === 0}
           >
             Return
           </Button>
@@ -118,11 +120,15 @@ const Members: React.FC = () => {
           >
             <Select>
               {historyData
-              .filter((history) => history.memberId === selectedMember?.id)
-              .map((history) => (
-                <Select.Option key={history.Book.id} value={history.Book.id}>
-                  {history.Book.title}
-                </Select.Option>
+                .filter((history) => history.memberId === selectedMember?.id
+                && history.status === 'borrowed')
+                .map((history) => (
+                  <Select.Option
+                    key={history.Book.id}
+                    value={history.Book.id}
+                  >
+                    {history.Book.title}
+                  </Select.Option>
               ))}
             </Select>
           </Form.Item>

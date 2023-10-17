@@ -76,6 +76,7 @@ export const fetchHistory = () => async (dispatch: AppDispatch) => {
   try {
     const response = await axios.get(`${base_url}/histories`);
     dispatch(fetchHistorySuccess(response.data));
+    
   } catch (error) {
     const err = error as AxiosError<unknown>;
     const errorData = (err.response?.data as { message: string });

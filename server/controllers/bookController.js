@@ -5,13 +5,7 @@ class Controller {
     try {
       const books = await Book.findAll();
 
-      const availableBooks = books.filter((book) => book.stock > 0);
-
-      if (availableBooks.length === 0) {
-        throw { name: "BookUnavailable" };
-      }
-
-      res.status(200).json(availableBooks);
+      res.status(200).json(books);
     } catch (err) {
       next(err);
     }
@@ -64,14 +58,14 @@ class Controller {
 
       if (bookedCount >= 2) throw { name: "BookedLimited" };
 
+      book.stock -= 1;
+      await book.save();
+
       await BookHistory.create({
         memberId,
         bookId,
         status: "borrowed",
       });
-
-      book.stock -= 1;
-      await book.save();
 
       res.status(200).json({ message: "Book successfully borrowed" });
     } catch (err) {
@@ -85,7 +79,7 @@ class Controller {
 
       const member = await Member.findByPk(memberId);
 
-      if (!member) throw { name: "MemberNotFound" }
+      if (!member) throw { name: "MemberNotFound" };
 
       const book = await Book.findByPk(bookId);
 
@@ -111,12 +105,12 @@ class Controller {
         await member.save();
       }
 
+      book.stock += 1;
+      await book.save();
+
       bookHistory.status = "returned";
       bookHistory.updatedAt = returnDate;
       await bookHistory.save();
-
-      book.stock += 1;
-      await book.save();
 
       res.status(200).json({ message: "Book successfully returned" });
     } catch (err) {

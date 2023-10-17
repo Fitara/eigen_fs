@@ -6,7 +6,7 @@ import { fetchHistory, selectHistory } from '../redux/historySlice';
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   });
 };
@@ -18,6 +18,11 @@ const History: React.FC = () => {
   useEffect(() => {
     dispatch(fetchHistory());
   }, [dispatch]);
+
+  interface RecordType {
+  createdAt: string;
+  updatedAt: string;
+}
 
   const columns = [
     {
@@ -41,16 +46,22 @@ const History: React.FC = () => {
       key: 'memberName',
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
+      title: 'Borrow',
+      dataIndex: 'createdAt',
       className: 'capitalize-text',
       key: 'status',
+      render: (text: string) => formatDate(text),
     },
     {
-      title: 'Date',
-      dataIndex: 'createdAt',
+      title: 'Return',
+      dataIndex: 'updatedAt',
       key: 'date',
-      render: (text: string) => formatDate(text),
+      render: (text: string, record: RecordType) => {
+        const borrowDate = new Date(record.createdAt);
+        const returnDate = new Date(text);
+
+        return returnDate > borrowDate ? formatDate(text) : '';
+      },
     },
   ];
 

@@ -45,7 +45,6 @@ const MainLayout: React.FC = () => {
             padding: "0 1.5em",
             background: "transparent",
             boxShadow: "0 1px 5px rgba(0, 0, 0, 0.2)",
-            height: "10vh",
           }}
         >
           <div style={{ display: "flex" }}>
@@ -93,7 +92,7 @@ const MainLayout: React.FC = () => {
             padding: "0 1.5em",
             background: "transparent",
             boxShadow: "0 1px 5px rgba(0, 0, 0, 0.2)",
-            height: "7vh",
+            height: "48px",
           }}
         >
           Ant Design ©2023 Created by Ant UED

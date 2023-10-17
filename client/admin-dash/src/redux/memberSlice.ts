@@ -7,10 +7,11 @@ import axios from 'axios';
 const base_url = 'http://localhost:3000';
 
 interface Member {
-  booked: number;
   id: number;
   code: string;
   name: string;
+  isPenalized: boolean;
+  BookHistories: [];
 }
 
 interface MembersState {
@@ -36,6 +37,7 @@ const membersSlice = createSlice({
     fetchMembersSuccess: (state, action: PayloadAction<Member[]>) => {
       state.loading = false;
       state.data = action.payload;
+       console.log('fetchMembersSuccess payload:', action.payload);
     },
     fetchMembersFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
@@ -65,8 +67,7 @@ export const fetchMemberById = (memberId: number) => async (dispatch: AppDispatc
   dispatch(fetchMembersStart());
   try {
     const response = await axios.get(`${base_url}/members/${memberId}`);
-    dispatch(fetchMembersSuccess(response.data)); 
-    console.log(response.data, "<<<<");
+    dispatch(fetchMembersSuccess(response.data));
     
     return response.data;
     
